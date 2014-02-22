@@ -7,11 +7,19 @@
  * user guide available at http://gradle.org/docs/1.11/userguide/tutorial_java_projects.html
  */
 
+buildscript {
+    repositories {
+        mavenCentral()
+    }
+    dependencies {
+        classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:0.6+"
+    }
+}
+
+def kotlin_version = "0.1-SNAPSHOT"
 
 // Apply the java plugin to add support for Java
 apply plugin: 'kotlin'
-
-def kotlin_version = "0.1-SNAPSHOT"
 
 // In this section you declare where to find the dependencies of your project
 repositories {
