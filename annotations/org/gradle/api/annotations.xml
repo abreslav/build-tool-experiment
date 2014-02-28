@@ -1,4 +1,7 @@
 <root>
+    <item name='org.gradle.api.Plugin void apply(T) 0'>
+        <annotation name='org.jetbrains.annotations.NotNull'/>
+    </item>
     <item name='org.gradle.api.Project org.gradle.api.Project getRootProject()'>
         <annotation name='org.jetbrains.annotations.NotNull'/>
     </item>

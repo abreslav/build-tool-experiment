@@ -1,0 +1,8 @@
+<root>
+    <item name='org.gradle.api.initialization.dsl.ScriptHandler org.gradle.api.artifacts.ConfigurationContainer getConfigurations()'>
+        <annotation name='org.jetbrains.annotations.NotNull'/>
+    </item>
+    <item name='org.gradle.api.initialization.dsl.ScriptHandler org.gradle.api.artifacts.dsl.DependencyHandler getDependencies()'>
+        <annotation name='org.jetbrains.annotations.NotNull'/>
+    </item>
+</root>
