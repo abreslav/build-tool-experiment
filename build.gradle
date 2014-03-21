@@ -8,15 +8,14 @@
  */
 
 buildscript {
+    ext.kotlin_version = "0.7+"
     repositories {
         mavenCentral()
     }
     dependencies {
-        classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:0.6+"
+        classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlin_version"
     }
 }
-
-def kotlin_version = "0.1-SNAPSHOT"
 
 group = "org.jetbrains.kotlin.buildtool"
 version = "0.1-SNAPSHOT"
@@ -25,16 +24,14 @@ apply plugin: 'kotlin'
 apply plugin: 'maven'
 apply plugin: 'idea'
 
-// In this section you declare where to find the dependencies of your project
 repositories {
-    // Use 'maven central' for resolving your dependencies.
-    // You can declare any Maven/Ivy/file repository here.
     mavenCentral()
     mavenLocal()
 }
 
 sourceSets {
-    integrationTest
+    integrationTest.java.srcDirs += 'src/integrationTest/kotlin'
+    main.java.srcDirs += 'src/main/kotlin'
 }
 
 configurations {
@@ -46,8 +43,8 @@ configurations {
 // In this section you declare the dependencies for your production and test code
 dependencies {
     compile gradleApi()
-    compile "org.jetbrains.kotlin:kotlin-compiler:${kotlin_version}"
-    compile "org.jetbrains.kotlin:kotlin-stdlib:${kotlin_version}"
+    compile "org.jetbrains.kotlin:kotlin-compiler:0.7+"
+    compile "org.jetbrains.kotlin:kotlin-stdlib:0.7+"
     compile "com.google.guava:guava:14.0.1"
     compile "commons-io:commons-io:1.4"
 
