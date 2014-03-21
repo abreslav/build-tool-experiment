@@ -24,4 +24,13 @@ class BuildToolIT : BaseGradleIT(resourcesRoot = "src/integrationTest/resources"
             assertContains(":doTask", "Hello World!")
         }
     }
+
+    Test fun testJavaBuild() {
+        val project = Project("javaProject", "1.11")
+
+        project.build("build") {
+            assertSuccessful()
+            assertContains(":compileJava", ":jar", ":build")
+        }
+    }
 }
