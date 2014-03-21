@@ -3,25 +3,23 @@ package org.jetbrains.kotlin.buildtool
 import org.gradle.api.Project
 import org.gradle.api.Plugin
 import org.gradle.api.GradleException
-import org.jetbrains.jet.cli.common.ExitCode
 import java.io.File
-import org.jetbrains.jet.cli.common.arguments.K2JVMCompilerArguments
-import java.util.HashSet
-import java.util.ArrayList
-import org.apache.commons.lang.StringUtils
 import org.gradle.api.artifacts.ConfigurationContainer
 import org.gradle.api.specs.Spec
 import org.gradle.api.initialization.dsl.ScriptHandler
 import org.gradle.api.artifacts.dsl.DependencyHandler
-import org.jetbrains.jet.cli.common.messages.CompilerMessageSeverity
-import org.jetbrains.jet.cli.common.messages.CompilerMessageLocation
-import org.jetbrains.jet.cli.common.messages.MessageCollector
 import org.gradle.api.logging.Logger
 import org.gradle.api.logging.Logging
 import com.google.common.io.Files
 import org.apache.commons.io.FileUtils
-import org.jetbrains.jet.cli.jvm.K2JVMCompiler
 import java.net.URLClassLoader
+import org.jetbrains.jet.cli.common.arguments.K2JVMCompilerArguments
+import org.jetbrains.jet.cli.jvm.K2JVMCompiler
+import org.jetbrains.jet.cli.common.ExitCode
+import org.jetbrains.jet.cli.common.messages.MessageCollector
+import org.jetbrains.jet.cli.common.messages.CompilerMessageSeverity
+import org.jetbrains.jet.cli.common.messages.CompilerMessageLocation
+import org.gradle.api.logging.LogLevel
 
 
 open class KotlinBuildtoolPlugin: Plugin<Project> {
@@ -45,14 +43,16 @@ open class KotlinBuildtoolPlugin: Plugin<Project> {
             // classpath
             val gradleApi = project.getConfigurations()!!.detachedConfiguration(project.getDependencies()?.gradleApi())!!
             val gradleAPIpaths = gradleApi.resolve()!! map { it.getAbsolutePath() }
-            val kotlinStdLibPaths = gradleUtils.resolveDependencies("org.jetbrains.kotlin:kotlin-stdlib:0.1-SNAPSHOT")!! map { it.getAbsolutePath() }
-            args.classpath = (gradleAPIpaths + kotlinStdLibPaths) makeString File.pathSeparator
+            val libraries = gradleUtils.resolveDependencies(
+                    "org.jetbrains.kotlin:kotlin-stdlib:0.7+",
+                    "org.jetbrains.kotlin.buildtool:kotlin-build-tool:0.1-SNAPSHOT")!! map { it.getAbsolutePath() }
+            args.classpath = (gradleAPIpaths + libraries) makeString File.pathSeparator
 
             // output
             args.outputDir = tempDir.getAbsolutePath()
 
             // annotations
-            val annotationsFiles = gradleUtils.resolveDependencies("org.jetbrains.kotlin:kotlin-jdk-annotations:0.6+")
+            val annotationsFiles = gradleUtils.resolveDependencies("org.jetbrains.kotlin:kotlin-jdk-annotations:0.7+")
             args.annotations = annotationsFiles map { it.getAbsolutePath() } makeString File.pathSeparator
 
             // config
@@ -64,26 +64,30 @@ open class KotlinBuildtoolPlugin: Plugin<Project> {
 
             // compile build.kt
             val compiler = K2JVMCompiler()
+            logger.debug("Starting compiler")
             val exitCode = compiler.exec(messageCollector, args)
             when (exitCode) {
                 ExitCode.COMPILATION_ERROR -> throw GradleException("Compilation error. See log for more details")
                 ExitCode.INTERNAL_ERROR -> throw GradleException("Internal compiler error. See log for more details")
                 else -> {}
             }
-
-            val arrayOfURLs = array(tempDir.toURI().toURL())
-
-            val builderLoader = URLClassLoader(arrayOfURLs, getClass().getClassLoader())
+            logger.debug("Finished compiling, creating classloader")
 
             // load class
-            val cls = builderLoader.loadClass("org.jetbrains.kotlin.gradle.buildtool.MyBuild")!!
-            val builder = cls.newInstance()
+            val compiledClassesDirURL = array(tempDir.toURI().toURL())
+            val builderLoader = URLClassLoader(compiledClassesDirURL, getClass().getClassLoader())
+            logger.debug("Loading class")
+            val cls = builderLoader.loadClass("_DefaultPackage")!!
 
             // execute compiled code against RootProject and Gradle objects
-            val entryPoint = cls.getDeclaredMethod("doBuild", javaClass<Project>())
-            entryPoint.invoke(builder, project)
+            val entryPoint = cls.getDeclaredMethod("configure", javaClass<ProjectFacade>())
+            logger.debug("Delegating cotrol to kotlin code")
+            entryPoint.invoke(null, ProjectFacade(project))
+            logger.debug("Finished configuring project")
         } finally {
-            FileUtils.deleteDirectory(tempDir)
+            if (project.getLogging()!!.getLevel() != LogLevel.DEBUG ) {
+                FileUtils.deleteDirectory(tempDir)
+            }
         }
     }
 
