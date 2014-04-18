@@ -82,7 +82,12 @@ open class KotlinBuildtoolPlugin: Plugin<Project> {
             // execute compiled code against RootProject and Gradle objects
             val entryPoint = cls.getDeclaredMethod("configure", javaClass<ProjectFacade>())
             logger.debug("Delegating cotrol to kotlin code")
-            entryPoint.invoke(null, ProjectFacade(project))
+            if (project.hasProperty("extractInfo")) {
+                logger.info("Extracting project information")
+                entryPoint.invoke(null, ProjectFacade(ExtractorProject(project)))
+            } else {
+                entryPoint.invoke(null, ProjectFacade(project))
+            }
             logger.debug("Finished configuring project")
         } finally {
             if (project.getLogging()!!.getLevel() != LogLevel.DEBUG ) {

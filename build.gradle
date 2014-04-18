@@ -31,7 +31,6 @@ repositories {
 
 sourceSets {
     integrationTest.java.srcDirs += 'src/integrationTest/kotlin'
-    main.java.srcDirs += 'src/main/kotlin'
 }
 
 configurations {
@@ -43,8 +42,8 @@ configurations {
 // In this section you declare the dependencies for your production and test code
 dependencies {
     compile gradleApi()
-    compile "org.jetbrains.kotlin:kotlin-compiler:0.7+"
-    compile "org.jetbrains.kotlin:kotlin-stdlib:0.7+"
+    compile "org.jetbrains.kotlin:kotlin-compiler:$kotlin_version"
+    compile "org.jetbrains.kotlin:kotlin-stdlib:$kotlin_version"
     compile "com.google.guava:guava:14.0.1"
     compile "commons-io:commons-io:1.4"
 
